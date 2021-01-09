@@ -4,6 +4,7 @@ import subprocess
 import dataclasses
 import requests
 import os
+import glob
 
 
 @dataclasses.dataclass
@@ -33,6 +34,9 @@ platforms = (
     ),
 )
 
+for zip in glob.glob("clang-format_*.zip"):
+    os.unlink(zip)
+
 for plat in platforms:
     hash_url = f"https://raw.githubusercontent.com/chromium/chromium/{commit}/buildtools/{plat.path}"
     hash = requests.get(hash_url).text
@@ -40,6 +44,8 @@ for plat in platforms:
     subprocess.run(
         ["gsutil", "cp", f"gs://chromium-clang-format/{hash}", plat.fname], check=True
     )
+
+    subprocess.run(["chmod", "a+x", plat.fname], check=True)
 
     zipname = f"clang-format_{plat.bazel_platform_name}.zip"
     subprocess.run(["zip", zipname, plat.fname], check=True)
